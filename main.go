@@ -1,79 +1,106 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
-	"log"
+	"io/ioutil"
 	"os"
 	"os/exec"
 )
 
 func main() {
 	var (
-		create = flag.Bool("create", false, "create a note file")
-		remove = flag.Bool("remove", false, "remove a note file")
+		init   = flag.Bool("init", false, "create note folder")
+		create = flag.Bool("create", false, "create note file")
+		remove = flag.Bool("remove", false, "remove note file")
+		list   = flag.Bool("list", false, "list all note files")
 	)
+
 	flag.Parse()
-
+	if *init {
+		if err := createFolder(); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		return
+	}
 	if *create {
-		fname, err := getFileName(os.Args)
+		filepath, err := getFileName()
 		if err != nil {
-			fmt.Println(err)
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
 
-		log.Println(fname)
-		if err := createFile(fname); err != nil {
-			fmt.Println(err)
+		if err := createFile(filepath); err != nil {
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-	} else if *remove {
-		fname, err := getFileName(os.Args)
+		return
+	}
+	if *remove {
+		filepath, err := getFileName()
 		if err != nil {
-			fmt.Println(err)
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
 
-		if err := removeFile(fname); err != nil {
-			fmt.Println(err)
+		if err := removeFile(filepath); err != nil {
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-	} else {
-		fname, err := getFileName(os.Args)
+		return
+	}
+	if *list {
+		files, err := listFiles()
 		if err != nil {
-			fmt.Println(err)
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
+		fmt.Println(files)
+		return
+	}
 
-		if err := editFile(fname); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
+	filepath, err := getFileName()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
+	if err := editFile(filepath); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 }
 
-func editFile(fname string) error {
-	path := fmt.Sprintf("%s/Documents/notes/%s.md", os.Getenv("HOME"), fname)
+func listFiles() ([]string, error) {
+	path := fmt.Sprintf("%s/Documents/notes/", os.Getenv("HOME"))
+	fis, err := ioutil.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+	files := make([]string, 0)
+	for _, fi := range fis {
+		files = append(files, fi.Name())
+	}
+	return files, nil
+}
+
+func createFolder() error {
+	path := fmt.Sprintf("%s/Documents/notes", os.Getenv("HOME"))
+	return os.Mkdir(path, 0755)
+}
+
+func editFile(filepath string) error {
 	editor := os.Getenv("EDITOR")
-	cmd := exec.Command(editor, path)
+	cmd := exec.Command(editor, filepath)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
 }
 
-func createFile(fname string) error {
-	path := fmt.Sprintf("%s/Documents/notes", os.Getenv("HOME"))
-	if err := os.Mkdir(path, 0755); err != nil {
-		if os.IsExist(err) {
-		} else {
-			return err
-		}
-	}
-
-	path = fmt.Sprintf("%s/%s.md", path, fname)
-	f, err := os.Create(path)
+func createFile(filepath string) error {
+	f, err := os.Create(filepath)
 	if err != nil {
 		return err
 	}
@@ -81,19 +108,16 @@ func createFile(fname string) error {
 	return nil
 }
 
-func removeFile(fname string) error {
-	path := fmt.Sprintf("%s/Documents/notes/%s.md", os.Getenv("HOME"), fname)
-	return os.Remove(path)
+func removeFile(filepath string) error {
+	return os.Remove(filepath)
 }
 
-func getFileName(args []string) (string, error) {
-	if len(args) < 2 {
-		return "", errors.New("too few arguments")
+func getFileName() (string, error) {
+	if flag.NArg() != 1 {
+		return "", fmt.Errorf("received %d file names, but expected one file name", flag.NArg())
 	}
 
-	if len(args) == 2 {
-		return args[1], nil
-	} else {
-		return args[2], nil
-	}
+	filepath := fmt.Sprintf("%s/Documents/notes/%s.md", os.Getenv("HOME"), flag.Arg(0))
+	return filepath, nil
+
 }
