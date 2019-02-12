@@ -1,4 +1,4 @@
-#tnote
+# tnote
 
 A simple command line tool for managing notes.
 
