@@ -56,7 +56,9 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-		fmt.Println(files)
+		for _, file := range files {
+			fmt.Println(file[:len(file)-3])
+		}
 		return
 	}
 
