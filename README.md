@@ -9,7 +9,7 @@ A simple command line tool for managing notes.
 
 ## Installation
 
-Run `go get -u github.com/husainaloos/tnote`
+Run `go install -u github.com/husainaloos/tnote`
 
 ## Usage
 
