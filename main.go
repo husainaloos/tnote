@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	fp "path/filepath"
+	"strings"
 )
 
 func main() {
@@ -93,6 +95,12 @@ func createFolder() error {
 }
 
 func editFile(filepath string) error {
+	if _, err := os.Stat(filepath); os.IsNotExist(err) {
+		if err := createFile(filepath); err != nil {
+			return err
+		}
+	}
+
 	editor := os.Getenv("EDITOR")
 	cmd := exec.Command(editor, filepath)
 	cmd.Stdin = os.Stdin
@@ -107,7 +115,11 @@ func createFile(filepath string) error {
 		return err
 	}
 	defer f.Close()
-	return nil
+	fn := fp.Base(filepath)
+	fn = strings.TrimSuffix(fn, ".md")
+	title := fmt.Sprintf("# %s", fn)
+	_, err = f.Write([]byte(title))
+	return err
 }
 
 func removeFile(filepath string) error {
