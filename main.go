@@ -13,7 +13,6 @@ import (
 func main() {
 	var (
 		init   = flag.Bool("init", false, "create note folder")
-		create = flag.Bool("create", false, "create note file")
 		remove = flag.Bool("remove", false, "remove note file")
 		list   = flag.Bool("list", false, "list all note files")
 	)
@@ -21,19 +20,6 @@ func main() {
 	flag.Parse()
 	if *init {
 		if err := createFolder(); err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
-		}
-		return
-	}
-	if *create {
-		filepath, err := getFileName()
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
-		}
-
-		if err := createFile(filepath); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
