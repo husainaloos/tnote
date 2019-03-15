@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -26,7 +27,7 @@ func main() {
 		return
 	}
 	if *remove {
-		filepath, err := getFileName()
+		filepath, err := getFilePath()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
@@ -50,7 +51,7 @@ func main() {
 		return
 	}
 
-	filepath, err := getFileName()
+	filepath, err := getFilePath()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -112,12 +113,13 @@ func removeFile(filepath string) error {
 	return os.Remove(filepath)
 }
 
-func getFileName() (string, error) {
-	if flag.NArg() != 1 {
-		return "", fmt.Errorf("received %d file names, but expected one file name", flag.NArg())
+func getFilePath() (string, error) {
+	if flag.NArg() < 1 {
+		return "", errors.New("no file name provided")
 	}
 
-	filepath := fmt.Sprintf("%s/Documents/notes/%s.md", os.Getenv("HOME"), flag.Arg(0))
+	fileName := strings.Join(flag.Args(), " ")
+	filepath := fmt.Sprintf("%s/Documents/notes/%s.md", os.Getenv("HOME"), fileName)
 	return filepath, nil
 
 }
