@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"os"
@@ -57,10 +58,23 @@ func main() {
 	}
 
 	if !exists {
-		if err := m.Create(noteID); err != nil {
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Printf("note %q does not exists. Do you want to create it [Y/n]?", noteID)
+		txt, err := reader.ReadString('\n')
+		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
+		txt = strings.ToLower(txt)
+		if !strings.HasPrefix(txt, "y") {
+			return
+		} else {
+			if err := m.Create(noteID); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+		}
+
 	}
 
 	if err := m.Edit(noteID); err != nil {
