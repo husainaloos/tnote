@@ -9,11 +9,13 @@ import (
 	"strings"
 )
 
+// Manager for notes that uses /Documents/notes directory
 type Manager struct {
 	homeDir string
 	editor  string
 }
 
+// NewManager creates an instance of the manager
 func NewManager() (*Manager, error) {
 	usr, err := user.Current()
 	if err != nil {
@@ -30,6 +32,7 @@ func NewManager() (*Manager, error) {
 	}, nil
 }
 
+// List the notes available
 func (m *Manager) List() ([]string, error) {
 	fis, err := ioutil.ReadDir(m.homeDir)
 	if err != nil {
@@ -43,11 +46,13 @@ func (m *Manager) List() ([]string, error) {
 	return noteIDs, nil
 }
 
+// Remove a note by note id
 func (m *Manager) Remove(noteID string) error {
 	p := m.getNotePath(noteID)
 	return os.Remove(p)
 }
 
+// Create a new note by note id
 func (m *Manager) Create(noteID string) error {
 	p := m.getNotePath(noteID)
 	f, err := os.OpenFile(p, os.O_WRONLY|os.O_CREATE, 0755)
@@ -59,6 +64,7 @@ func (m *Manager) Create(noteID string) error {
 	return err
 }
 
+// Exists checks if the note exits
 func (m *Manager) Exists(noteID string) (bool, error) {
 	p := m.getNotePath(noteID)
 	if _, err := os.Stat(p); os.IsNotExist(err) {
@@ -70,6 +76,7 @@ func (m *Manager) Exists(noteID string) (bool, error) {
 	}
 }
 
+// Edit the note given a note id
 func (m *Manager) Edit(noteID string) error {
 	p := fmt.Sprintf("%s/%s.md", m.homeDir, noteID)
 	if _, err := os.Stat(p); err != nil {
