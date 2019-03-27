@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
+	"path/filepath"
 	"strings"
 )
 
@@ -13,6 +14,7 @@ import (
 type Manager struct {
 	homeDir string
 	editor  string
+	perm    os.FileMode
 }
 
 // NewManager creates an instance of the manager
@@ -22,13 +24,15 @@ func NewManager() (*Manager, error) {
 		return nil, err
 	}
 	home := fmt.Sprintf("%s/Documents/notes", usr.HomeDir)
-	if err := os.Mkdir(home, 0755); !os.IsExist(err) {
+	var perm os.FileMode = 0644
+	if err := os.Mkdir(home, perm); !os.IsExist(err) {
 		return nil, err
 	}
 	editor := os.Getenv("EDITOR")
 	return &Manager{
 		homeDir: home,
 		editor:  editor,
+		perm:    perm,
 	}, nil
 }
 
@@ -55,7 +59,11 @@ func (m *Manager) Remove(noteID string) error {
 // Create a new note by note id
 func (m *Manager) Create(noteID string) error {
 	p := m.getNotePath(noteID)
-	f, err := os.OpenFile(p, os.O_WRONLY|os.O_CREATE, 0755)
+	d := filepath.Dir(p)
+	if err := os.MkdirAll(d, m.perm); err != nil {
+		return err
+	}
+	f, err := os.OpenFile(p, os.O_WRONLY|os.O_CREATE, m.perm)
 	if err != nil {
 		return err
 	}
@@ -78,7 +86,7 @@ func (m *Manager) Exists(noteID string) (bool, error) {
 
 // Edit the note given a note id
 func (m *Manager) Edit(noteID string) error {
-	p := fmt.Sprintf("%s/%s.md", m.homeDir, noteID)
+	p := m.getNotePath(noteID)
 	if _, err := os.Stat(p); err != nil {
 		return err
 	}
