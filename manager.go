@@ -36,6 +36,17 @@ func NewManager() (*Manager, error) {
 	}, nil
 }
 
+// setHomeDir for the manager. This is used only for testing
+// and should not be used for any other reason
+func (m *Manager) setHomeDir(dir string) error {
+	err := os.MkdirAll(dir, 0744)
+	if err != nil {
+		return err
+	}
+	m.homeDir = dir
+	return nil
+}
+
 // List the notes available
 func (m *Manager) List() ([]string, error) {
 	fis, err := ioutil.ReadDir(m.homeDir)
