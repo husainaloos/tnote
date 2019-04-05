@@ -70,7 +70,7 @@ func TestList(t *testing.T) {
 				if err != nil {
 					t.Errorf("cannot create file: %v", err)
 				}
-				defer f.Close()
+				f.Close()
 			}
 
 			got, err := m.List()
@@ -87,23 +87,38 @@ func TestList(t *testing.T) {
 func TestCreate(t *testing.T) {
 	tests := []struct {
 		name     string
+		has      []string
 		toCreate string
 		expected []string
+		err      bool
 	}{
 		{
 			name:     "testing creating simple file",
+			has:      []string{},
 			toCreate: "file",
 			expected: []string{"file.md"},
+			err:      false,
 		},
 		{
 			name:     "testing simple file with .md",
+			has:      []string{},
 			toCreate: "file.md",
 			expected: []string{"file.md.md"},
+			err:      false,
 		},
 		{
 			name:     "testing simple file with underscore",
+			has:      []string{},
 			toCreate: "file_with_underscore",
 			expected: []string{"file_with_underscore.md"},
+			err:      false,
+		},
+		{
+			name:     "fail to create duplicate file",
+			has:      []string{"file.md"},
+			toCreate: "file",
+			expected: []string{"file.md"},
+			err:      true,
 		},
 	}
 
@@ -119,8 +134,17 @@ func TestCreate(t *testing.T) {
 				t.Fatalf("cannot set home dir: %v", err)
 			}
 
+			for _, fn := range test.has {
+				fn = filepath.Join(testHomeDir, fn)
+				f, err := os.Create(fn)
+				if err != nil {
+					t.Fatalf("cannot create file %s: %v", fn, err)
+				}
+				f.Close()
+			}
+
 			if err := m.Create(test.toCreate); err != nil {
-				t.Fatalf("failed: %v", err)
+				t.Fatalf("expected err=%v, but got err %v", test.err, err)
 			}
 
 			fis, err := ioutil.ReadDir(testHomeDir)
