@@ -5,12 +5,27 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"sync/atomic"
 	"testing"
 )
 
 var (
-	testHomeDir = "/tmp/tnote_test"
+	folder_id int64 = 0
 )
+
+func getManager(t *testing.T) (m *Manager, homeDir string) {
+	m, err := NewManager()
+	if err != nil {
+		t.Fatalf("cannot create manager: %v", err)
+	}
+
+	homeDir = "/tmp/test_tnote_" + string(atomic.AddInt64(&folder_id, 1))
+	if err := m.setHomeDir(homeDir); err != nil {
+		t.Fatalf("cannot set homeDir %s: %v", homeDir, err)
+	}
+
+	return
+}
 
 func TestCreatingManager(t *testing.T) {
 	manager, err := NewManager()
@@ -52,20 +67,12 @@ func TestList(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			// clean the test folder
-			if err := os.RemoveAll(testHomeDir); err != nil {
-				t.Fatalf("cannot remove home dir: %v", err)
-			}
-
-			m, _ := NewManager()
-			err := m.setHomeDir(testHomeDir)
-			if err != nil {
-				t.Fatalf("cannot set home dir: %v", err)
-			}
+			m, dir := getManager(t)
+			defer func() { _ = os.RemoveAll(dir) }()
 
 			// create all files
 			for _, fn := range test.has {
-				fn = filepath.Join(testHomeDir, fn)
+				fn = filepath.Join(dir, fn)
 				f, err := os.Create(fn)
 				if err != nil {
 					t.Errorf("cannot create file: %v", err)
@@ -124,18 +131,12 @@ func TestCreate(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			if err := os.RemoveAll(testHomeDir); err != nil {
-				t.Fatalf("cannot remove home dir: %v", err)
-			}
 
-			m, _ := NewManager()
-			err := m.setHomeDir(testHomeDir)
-			if err != nil {
-				t.Fatalf("cannot set home dir: %v", err)
-			}
+			m, dir := getManager(t)
+			defer func() { _ = os.RemoveAll(dir) }()
 
 			for _, fn := range test.has {
-				fn = filepath.Join(testHomeDir, fn)
+				fn = filepath.Join(dir, fn)
 				f, err := os.Create(fn)
 				if err != nil {
 					t.Fatalf("cannot create file %s: %v", fn, err)
@@ -147,9 +148,9 @@ func TestCreate(t *testing.T) {
 				t.Fatalf("expected err=%v, but got err %v", test.err, err)
 			}
 
-			fis, err := ioutil.ReadDir(testHomeDir)
+			fis, err := ioutil.ReadDir(dir)
 			if err != nil {
-				t.Fatalf("cannot read %s: %v", testHomeDir, err)
+				t.Fatalf("cannot read %s: %v", dir, err)
 			}
 			fns := make([]string, 0)
 			for _, fi := range fis {
