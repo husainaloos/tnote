@@ -13,6 +13,36 @@ var (
 	folder_id int64 = 0
 )
 
+// createFilesForTest creates files in a given directory
+// used for testing
+func createFilesForTest(t *testing.T, dir string, fs []string) {
+	for _, fn := range fs {
+		fn = filepath.Join(dir, fn)
+		f, err := os.Create(fn)
+		if err != nil {
+			t.Fatalf("cannot create file %s: %v", fn, err)
+		}
+		if err := f.Close(); err != nil {
+			t.Fatalf("cannot close file %s: %v", fn, err)
+		}
+	}
+}
+
+// getFilesInDir get the list of files in a given directory
+// used for testing
+func getFilesInDir(t *testing.T, dir string) []string {
+	fis, err := ioutil.ReadDir(dir)
+	if err != nil {
+		t.Fatalf("cannot read %s: %v", dir, err)
+	}
+	fns := make([]string, 0)
+	for _, fi := range fis {
+		fns = append(fns, fi.Name())
+	}
+
+	return fns
+}
+
 func getManager(t *testing.T) (m *Manager, homeDir string) {
 	m, err := NewManager()
 	if err != nil {
@@ -69,17 +99,7 @@ func TestList(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			m, dir := getManager(t)
 			defer func() { _ = os.RemoveAll(dir) }()
-
-			// create all files
-			for _, fn := range test.has {
-				fn = filepath.Join(dir, fn)
-				f, err := os.Create(fn)
-				if err != nil {
-					t.Errorf("cannot create file: %v", err)
-				}
-				f.Close()
-			}
-
+			createFilesForTest(t, dir, test.has)
 			got, err := m.List()
 			if err != nil {
 				t.Errorf("failed to list files: %v", err)
@@ -134,31 +154,67 @@ func TestCreate(t *testing.T) {
 
 			m, dir := getManager(t)
 			defer func() { _ = os.RemoveAll(dir) }()
-
-			for _, fn := range test.has {
-				fn = filepath.Join(dir, fn)
-				f, err := os.Create(fn)
-				if err != nil {
-					t.Fatalf("cannot create file %s: %v", fn, err)
-				}
-				f.Close()
-			}
+			createFilesForTest(t, dir, test.has)
 
 			if err := m.Create(test.noteid); (err != nil) != test.err {
 				t.Fatalf("got err=%v, exptected err=%v", err, test.err)
 			}
+			if test.err {
+				return
+			}
 
-			fis, err := ioutil.ReadDir(dir)
-			if err != nil {
-				t.Fatalf("cannot read %s: %v", dir, err)
-			}
-			fns := make([]string, 0)
-			for _, fi := range fis {
-				fns = append(fns, fi.Name())
-			}
+			fns := getFilesInDir(t, dir)
 			if !reflect.DeepEqual(fns, test.expected) {
 				t.Fatalf("have %v in dir, but expected %v", fns, test.expected)
 			}
 		})
+	}
+}
+
+func TestRemove(t *testing.T) {
+	tests := []struct {
+		name     string
+		has      []string
+		noteid   string
+		expected []string
+		err      bool
+	}{
+		{
+			name:     "should remove simple file",
+			has:      []string{"file.md", "extrafile.md"},
+			noteid:   "file",
+			expected: []string{"extrafile.md"},
+			err:      false,
+		},
+		{
+			name:     "should remove simple file even if there is a similarly named file",
+			has:      []string{"file.md", "file_.md", "extrafile.md"},
+			noteid:   "file",
+			expected: []string{"extrafile.md", "file_.md"},
+			err:      false,
+		},
+		{
+			name:     "should fails to remove non-existing file",
+			has:      []string{"extrafile.md"},
+			noteid:   "file",
+			expected: nil,
+			err:      true,
+		},
+	}
+
+	for _, test := range tests {
+		m, dir := getManager(t)
+		defer func() { _ = os.RemoveAll(dir) }()
+		createFilesForTest(t, dir, test.has)
+		if err := m.Remove(test.noteid); (err != nil) != test.err {
+			t.Fatalf("got err=%v, expected err=%v", err, test.err)
+		}
+		if test.err {
+			return
+		}
+		fns := getFilesInDir(t, dir)
+		if !reflect.DeepEqual(fns, test.expected) {
+			t.Fatalf("got %v, but expected %v", fns, test.expected)
+		}
 	}
 }
