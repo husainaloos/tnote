@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -69,17 +70,23 @@ func (m *Manager) Remove(noteID string) error {
 
 // Create a new note by note id
 func (m *Manager) Create(noteID string) error {
+	ok, err := m.Exists(noteID)
+	if err != nil {
+		return err
+	}
+	if ok {
+		return errors.New("cannot create duplicate file")
+	}
 	p := m.getNotePath(noteID)
 	d := filepath.Dir(p)
 	if err := os.MkdirAll(d, m.perm); err != nil {
 		return err
 	}
-	f, err := os.OpenFile(p, os.O_WRONLY|os.O_CREATE, m.perm)
+	f, err := os.Create(p)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
-	_, err = f.Write([]byte("#"))
+	err = f.Chmod(m.perm)
 	return err
 }
 

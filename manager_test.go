@@ -95,35 +95,35 @@ func TestCreate(t *testing.T) {
 	tests := []struct {
 		name     string
 		has      []string
-		toCreate string
+		noteid   string
 		expected []string
 		err      bool
 	}{
 		{
 			name:     "testing creating simple file",
 			has:      []string{},
-			toCreate: "file",
+			noteid:   "file",
 			expected: []string{"file.md"},
 			err:      false,
 		},
 		{
 			name:     "testing simple file with .md",
 			has:      []string{},
-			toCreate: "file.md",
+			noteid:   "file.md",
 			expected: []string{"file.md.md"},
 			err:      false,
 		},
 		{
 			name:     "testing simple file with underscore",
 			has:      []string{},
-			toCreate: "file_with_underscore",
+			noteid:   "file_with_underscore",
 			expected: []string{"file_with_underscore.md"},
 			err:      false,
 		},
 		{
 			name:     "fail to create duplicate file",
 			has:      []string{"file.md"},
-			toCreate: "file",
+			noteid:   "file",
 			expected: []string{"file.md"},
 			err:      true,
 		},
@@ -144,8 +144,8 @@ func TestCreate(t *testing.T) {
 				f.Close()
 			}
 
-			if err := m.Create(test.toCreate); err != nil {
-				t.Fatalf("expected err=%v, but got err %v", test.err, err)
+			if err := m.Create(test.noteid); (err != nil) != test.err {
+				t.Fatalf("got err=%v, exptected err=%v", err, test.err)
 			}
 
 			fis, err := ioutil.ReadDir(dir)
