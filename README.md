@@ -12,9 +12,11 @@ Run `go install -u github.com/husainaloos/tnote`
 
 ## Usage
 
-- `tnote homework` will edit `homework.md` file. If the file does not exists, it will create it.
-- `tnote --remove homework` will remove the note file `homework.md`.
+- `tnote mynotes` will edit `mynotes.md` file. If the file does not exists, it will create it.
+- `tnote --remove mynotes` will remove the note file `mynotes.md`.
 - `tnote --list` will list all notes.
 - `tnote --help` for help.
 
-(you can use `--init` or `-init`. The number of dashes does not matter)
+## Future Features
+
+I will be adding features as I need to.
