@@ -218,3 +218,54 @@ func TestRemove(t *testing.T) {
 		}
 	}
 }
+
+func TestExists(t *testing.T) {
+	tests := []struct {
+		name   string
+		has    []string
+		noteid string
+		expect bool
+		err    bool
+	}{
+		{
+			name:   "file should exists",
+			has:    []string{"file.md"},
+			noteid: "file",
+			expect: true,
+			err:    false,
+		},
+		{
+			name:   "file should not exists",
+			has:    []string{"file.md"},
+			noteid: "none_existing_note",
+			expect: false,
+			err:    false,
+		},
+		{
+			name:   "file should not exists event if extension is provided",
+			has:    []string{"file.md"},
+			noteid: "file.md",
+			expect: false,
+			err:    false,
+		},
+	}
+
+	for _, test := range tests {
+		m, dir := getManager(t)
+		defer func() { _ = os.RemoveAll(dir) }()
+		createFilesForTest(t, dir, test.has)
+		got, err := m.Exists(test.noteid)
+		if err != nil {
+			if !test.err {
+				t.Fatalf("got err: %v", err)
+			}
+			return
+		}
+		if test.err {
+			t.Fatalf("got no error, but expected err")
+		}
+		if got != test.expect {
+			t.Fatalf("got %v, expected %v", got, test.expect)
+		}
+	}
+}
