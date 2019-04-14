@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	folder_id int64 = 0
+	folderID int64
 )
 
 // createFilesForTest creates files in a given directory
@@ -49,7 +49,7 @@ func getManager(t *testing.T) (m *Manager, homeDir string) {
 		t.Fatalf("cannot create manager: %v", err)
 	}
 
-	homeDir = "/tmp/test_tnote_" + string(atomic.AddInt64(&folder_id, 1))
+	homeDir = "/tmp/test_tnote_" + string(atomic.AddInt64(&folderID, 1))
 	if err := m.setHomeDir(homeDir); err != nil {
 		t.Fatalf("cannot set homeDir %s: %v", homeDir, err)
 	}

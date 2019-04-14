@@ -66,15 +66,12 @@ func main() {
 			os.Exit(1)
 		}
 		txt = strings.ToLower(txt)
-		if !strings.HasPrefix(txt, "y") {
-			return
-		} else {
+		if strings.HasPrefix(txt, "y") {
 			if err := m.Create(noteID); err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
 			}
 		}
-
 	}
 
 	if err := m.Edit(noteID); err != nil {
