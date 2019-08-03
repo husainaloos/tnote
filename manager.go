@@ -3,11 +3,11 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"os/user"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -50,15 +50,23 @@ func (m *Manager) setHomeDir(dir string) error {
 
 // List the notes available
 func (m *Manager) List() ([]string, error) {
-	fis, err := ioutil.ReadDir(m.homeDir)
+	noteIDs := make([]string, 0)
+	err := filepath.Walk(m.homeDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if strings.HasSuffix(path, ".md") {
+			noteID := strings.TrimSuffix(path, ".md")
+			noteID = strings.TrimPrefix(noteID, m.homeDir+"/")
+			noteIDs = append(noteIDs, noteID)
+		}
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
-	noteIDs := make([]string, 0)
-	for _, fi := range fis {
-		noteID := strings.TrimSuffix(fi.Name(), ".md")
-		noteIDs = append(noteIDs, noteID)
-	}
+
+	sort.Strings(noteIDs)
 	return noteIDs, nil
 }
 

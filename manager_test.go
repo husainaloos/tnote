@@ -3,6 +3,7 @@ package main
 import (
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"reflect"
 	"sync/atomic"
@@ -18,6 +19,8 @@ var (
 func createFilesForTest(t *testing.T, dir string, fs []string) {
 	for _, fn := range fs {
 		fn = filepath.Join(dir, fn)
+		parent := path.Dir(fn)
+		_ = os.Mkdir(parent, os.ModePerm)
 		f, err := os.Create(fn)
 		if err != nil {
 			t.Fatalf("cannot create file %s: %v", fn, err)
@@ -92,6 +95,11 @@ func TestList(t *testing.T) {
 			name:     "testing files with two dots",
 			has:      []string{"file_with_two_mds.md.md"},
 			expected: []string{"file_with_two_mds.md"},
+		},
+		{
+			name:     "testing files in folders",
+			has:      []string{"folder/file1.md", "file2.md"},
+			expected: []string{"file2", "folder/file1"},
 		},
 	}
 
