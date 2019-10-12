@@ -12,7 +12,8 @@ Run `go install -u github.com/husainaloos/tnote`
 
 ## Usage
 
-- `tnote mynotes` will edit `mynotes.md` file. If the file does not exists, it will create it.
+- `tnote mynotes` will edit `mynotes.md` file. If the file does not exists, tnote will create it.
+- `tnote myfolder/mynotes` will edit `mynotes.md` file inside `myfolder` folder. If the file or folder do not exist, tnote will create them. This is experimental and I have not tested it fully.
 - `tnote --remove mynotes` will remove the note file `mynotes.md`.
 - `tnote --list` will list all notes.
 - `tnote --help` for help.
