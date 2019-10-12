@@ -25,7 +25,7 @@ func NewManager() (*Manager, error) {
 		return nil, err
 	}
 	home := fmt.Sprintf("%s/Documents/notes", usr.HomeDir)
-	var perm os.FileMode = 0644
+	var perm os.FileMode = 0744
 	if err := os.Mkdir(home, perm); !os.IsExist(err) {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func NewManager() (*Manager, error) {
 // setHomeDir for the manager. This is used only for testing
 // and should not be used for any other reason
 func (m *Manager) setHomeDir(dir string) error {
-	err := os.MkdirAll(dir, 0744)
+	err := os.MkdirAll(dir, m.perm)
 	if err != nil {
 		return err
 	}
