@@ -13,16 +13,16 @@ Run `go install -u github.com/husainaloos/tnote`
 ## Usage
 
 - `tnote mynotes` will edit `mynotes.md` file. If the file does not exists, tnote will create it.
-- `tnote myfolder/mynotes` will edit `mynotes.md` file inside `myfolder` folder. If the file or folder do not exist, tnote will create them. This is experimental and I have not tested it fully.
-- `tnote --remove mynotes` will remove the note file `mynotes.md`.
-- `tnote --list` will list all notes.
+- `tnote edit myfolder/mynotes` will edit `mynotes.md` file inside `myfolder` folder. If the file or folder do not exist, tnote will create them. This is experimental and I have not tested it fully.
+- `tnote remove mynotes` will remove the note file `mynotes.md`.
+- `tnote list` will list all notes.
 - `tnote --help` for help.
 
 ## Integrating with FZF
 
-Currently `tnote --list` outputs the list of notes. If you are trying to find a given note, this might not be the most helpful way. Instead, I suggest that you integrate this with FZF or any fuzzy finder. Just add 
+Currently `tnote list` outputs the list of notes. If you are trying to find a given note, this might not be the most helpful way. Instead, I suggest that you integrate this with FZF or any fuzzy finder. Just add 
 ```bash
-alias fnote='tnote $(tnote --list | fzf)
+alias fnote='tnote $(tnote list | fzf)
 ``` 
 to your shell startup file to find a note with the help of FZF. If the note you typed does not exist, tnote will create it.
 
