@@ -8,11 +8,40 @@ import (
 	"strings"
 )
 
+func getListCmd() *flag.FlagSet {
+	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
+	listCmd.Usage = func() {
+		w := flag.CommandLine.Output()
+		fmt.Fprintln(w, "Usage: tnote list")
+		fmt.Fprintln(w, "list lists all the note IDs the system has. list considers note IDs that live in nested folders")
+	}
+	return listCmd
+}
+
+func getEditCmd() *flag.FlagSet {
+	editCmd := flag.NewFlagSet("edit", flag.ExitOnError)
+	editCmd.Usage = func() {
+		w := flag.CommandLine.Output()
+		fmt.Fprintln(w, "Usage: tnote edit <noteID>")
+		fmt.Fprintln(w, "edit edits a given noteID. noteID can be a relative path (e.g. foo/bar). noteID cannot have space character.")
+	}
+	return editCmd
+}
+func getRemoveCmd() *flag.FlagSet {
+	removeCmd := flag.NewFlagSet("remove", flag.ExitOnError)
+	removeCmd.Usage = func() {
+		w := flag.CommandLine.Output()
+		fmt.Fprintln(w, "Usage: tnote remove <noteID>")
+		fmt.Fprintln(w, "remove removes a given noteID. noteID can be a relative path (e.g. foo/bar). noteID cannot have space character.")
+	}
+	return removeCmd
+}
+
 func main() {
 	var (
-		listCmd   = flag.NewFlagSet("list", flag.ExitOnError)
-		editCmd   = flag.NewFlagSet("edit", flag.ExitOnError)
-		removeCmd = flag.NewFlagSet("remove", flag.ExitOnError)
+		listCmd   = getListCmd()
+		editCmd   = getEditCmd()
+		removeCmd = getRemoveCmd()
 	)
 	flag.Parse()
 
