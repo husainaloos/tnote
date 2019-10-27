@@ -22,7 +22,7 @@ Run `go install -u github.com/husainaloos/tnote`
 
 Currently `tnote list` outputs the list of notes. If you are trying to find a given note, this might not be the most helpful way. Instead, I suggest that you integrate this with FZF or any fuzzy finder. Just add 
 ```bash
-alias fnote='tnote $(tnote list | fzf)
+alias fnote='tnote edit $(tnote list | fzf)
 ``` 
 to your shell startup file to find a note with the help of FZF. If the note you typed does not exist, tnote will create it.
 
